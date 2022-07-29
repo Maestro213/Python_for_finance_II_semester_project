@@ -66,10 +66,10 @@ print(df[["Close","Return"]].describe())
 price_data = df["Close"].ffill().dropna()
 return_data = (1+df["Return"].ffill().dropna())*100
 n=15
-d = 16
+d = 60
 l_v  = sp.svr_retrain(price_data,n=n,p=1,d=d,kernel='linear')
 r_v = sp.svr_retrain(price_data,n=n,p=1,d=d,kernel='rbf')
-p_v = sp.svr_retrain(price_data,n=n,p=1,d=d,kernel='poly')
+p_v = 0#sp.svr_retrain(price_data,n=n,p=1,d=60,kernel='poly')
 s_v = sp.svr_retrain(price_data,n=n,p=1,d=d,kernel='sigmoid')
 #%%
 
@@ -79,19 +79,20 @@ r_r = sp.svr_retrain(return_data,n=n,p=1,d=d,kernel='rbf')
 p_r = sp.svr_retrain(return_data,n=n,p=1,d=d,kernel='poly')
 s_r = sp.svr_retrain(return_data,n=n,p=1,d=d,kernel='sigmoid')
 #%%
-base_p = [l_v,r_v,p_v,s_v]
+base_p = [l_v,r_v,p_r,s_v]
 base_r = [l_r,r_r,p_r,s_r]
 
-a = pd.DataFrame(columns = ["Pr linear","Pr rbf","Pr poly","Pr sigmoid"])
-b = pd.DataFrame(columns = ["Ret linear","Ret rbf","Ret poly","Ret sigmoid"])
 
 for j in range(4):
-    a[a.columns[j]] = sp.metrics(base_p[j],df.iloc[-n:,3])[0]
-    b[b.columns[j]] = sp.metrics(base_r[j],(1+df.iloc[-n:,-1])*100)[0]
+    
 
-stat_metr = pd.concat([a,b],axis=1)
 
-#print(stat_metr)
+df_errors = pd.DataFrame([mae_p,mae_r],index=["Prices","Returns"],
+                         columns=["linear","rbf","poly",'sigmoid'])
+df_rel_errors = pd.DataFrame([mape_p,mape_r],index=["Prices","Returns"],
+                             columns=["linear","rbf","poly",'sigmoid'])
+
+print(df_rel_errors)
 
 
 #%%
@@ -157,3 +158,8 @@ df_metr_rf["Price"] = sp.metrics(base_p,df.iloc[-n:,3])[0]
 df_metr_rf["Return"] = sp.metrics(base_r,(1+df.iloc[-n:,-1])*100)[0]
                             
 print(df_metr_rf)
+#%%
+
+
+
+
